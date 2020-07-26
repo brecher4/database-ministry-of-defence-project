@@ -1,3 +1,4 @@
+import shelve, os
 from db_api import DB, DBTable, DBField, SelectionCriteria
 from typing import Any, Dict, List, Type
 
@@ -16,12 +17,15 @@ class DataBaseTable(DBTable):
         self.key_field_name = key_field_name
         self.num_record = 0
 
-        # יצירת קובץ שלב
+        # create shelve file
+        path = os.path.join('db_files', name + '.db')
+        s = shelve.open(path)
+        s.close()
 
 
     def count(self) -> int:
         return self.num_record
-        
+
 
     def insert_record(self, values: Dict[str, Any]) -> None:
         raise NotImplementedError
