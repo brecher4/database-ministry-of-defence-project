@@ -3,6 +3,9 @@ from db_api import DB, DBTable, DBField, SelectionCriteria
 from typing import Any, Dict, List, Type
 
 
+path_root = 'db_files'
+
+
 class DataBaseField(DBField):
     def __init__(self, name, type):
         self.name = name
@@ -16,6 +19,7 @@ class DataBaseTable(DBTable):
         self.fields = fields
         self.key_field_name = key_field_name
         self.num_record = 0
+        self.path_file = os.path.join(path_root, self.name + '.db')
 
         # create shelve file
         path = os.path.join('db_files', name + '.db')
