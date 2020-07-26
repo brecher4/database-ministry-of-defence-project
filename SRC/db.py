@@ -20,7 +20,8 @@ class DataBaseTable(DBTable):
 
 
     def count(self) -> int:
-        raise NotImplementedError
+        return self.num_record
+        
 
     def insert_record(self, values: Dict[str, Any]) -> None:
         raise NotImplementedError
