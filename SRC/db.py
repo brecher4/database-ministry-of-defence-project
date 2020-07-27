@@ -37,10 +37,12 @@ class DBTable(db_api.DBTable):
         if self.key_field_name not in values.keys():
             raise KeyError("The key is missing")
 
-        if not set(values.keys()).issubset(set(self.fields)):
-            raise KeyError("There are fields that not exists in the table's fields")
-
         s = shelve.open(self.path_file)
+
+        if self.key_field_name in s.keys():
+            raise KeyError("The key must be unique")
+ 
+        self.fields += list(set(values.keys()).difference(set(self.fields)))
         s[values[self.key_field_name]] = values
         s.close()
         
