@@ -1,4 +1,4 @@
-import os, shelve
+import os, shelve, csv
 from typing import Any, Dict, List, Type
 import db_api
 
@@ -111,6 +111,13 @@ class DataBase(db_api.DataBase):
         
         self.db_tables[table_name] = DBTable(table_name, fields, key_field_name)
         self.num_tables_in_DB += 1
+
+        path = os.path.join('db_files', "DataBase.csv")
+        with open(path, "a") as csv_file:
+            csv_writer = csv.writer(csv_file)
+            data_table = [table_name, fields, key_field_name]
+            csv_writer.writerow(data_table)
+
         return self.db_tables[table_name]
 
 
