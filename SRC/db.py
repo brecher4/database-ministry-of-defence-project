@@ -1,15 +1,21 @@
 import os, shelve
 from typing import Any, Dict, List, Type
-from db_api import DB, DBTable, DBField, SelectionCriteria
+import db_api
 
 
-class DataBaseField(DBField):
+class DBField(db_api.DBField):
     def __init__(self, name, type):
         self.name = name
         self.type = type
 
 
-class DataBaseTable(DBTable):  
+class SelectionCriteria(db_api.SelectionCriteria):
+    field_name: str
+    operator: str
+    value: Any
+
+
+class DBTable(db_api.DBTable):  
     def __init__(self, name, fields, key_field_name):
         super.__init__()
         self.name = name
@@ -67,7 +73,7 @@ class DataBaseTable(DBTable):
         raise NotImplementedError
 
 
-class DataBase(DB):
+class DataBase(db_api.DataBase):
     def __init__(self):
         super.__init__()
         self.db_tables = {}
@@ -75,7 +81,7 @@ class DataBase(DB):
 
 
     def create_table(self, table_name: str, fields: List[DBField], key_field_name: str) -> DBTable:
-        self.db_tables[table_name] = DataBaseTable(table_name, fields, key_field_name)
+        self.db_tables[table_name] = DBTable(table_name, fields, key_field_name)
         self.num_tables += 1
         return self.db_tables[table_name]
 
