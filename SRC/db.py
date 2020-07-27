@@ -63,10 +63,46 @@ class DBTable(db_api.DBTable):
         s.pop(str(key))
         self.num_record -= 1
         s.close()
+
+
+    def are_criterias_met(self, record: Dict[str, Any], criterias: List[SelectionCriteria]):
+        for criteria in criterias:
+            if criteria.field_name in record.keys():
+                if criteria.operator == '=':
+                    criteria.operator = "=="
+                try:
+                    is_criteria_met = eval(f'{record[criteria.field_name]} {criteria.operator} {criteria.value}')
+                
+                except NameError:
+
+                    is_criteria_met = eval(f'str(record[criteria.field_name]) {criteria.operator} str(criteria.value)')
+                
+                if not is_criteria_met:
+                    return False
         
+        return True
+
 
     def delete_records(self, criteria: List[SelectionCriteria]) -> None:
-        raise NotImplementedError
+        s = shelve.open(self.path_file, writeback=True)
+        
+        # using hash index by key
+        for item in criteria:
+            if item.field_name == self.key_field_name and item.operator == '=':
+                record = s[str(item.value)]
+
+                if self.are_criterias_met(record, criteria):
+                    s.pop(str(item.value))
+                    self.num_record -= 1
+                    s.close()
+                    return
+
+        for record in s.values():
+            if self.are_criterias_met(record, criteria):
+                s.pop(str(record[self.key_field_name]))
+                self.num_record -= 1
+        
+        s.close()
 
 
     def get_record(self, key: Any) -> Dict[str, Any]:
@@ -88,11 +124,29 @@ class DBTable(db_api.DBTable):
         s.close()
 
 
-    def query_table(self, criteria: List[SelectionCriteria]) \
-            -> List[Dict[str, Any]]:
-        raise NotImplementedError
+    def query_table(self, criteria: List[SelectionCriteria]) -> List[Dict[str, Any]]:
+        s = shelve.open(self.path_file)
+
+        list_match_records = []
+        
+        # using hash index by key
+        for item in criteria:
+            if item.field_name == self.key_field_name and item.operator == '=':
+                record = s[str(item.value)]
+
+                if self.are_criterias_met(record, criteria):
+                    s.close()
+                    return [record]
+
+        for record in s.values():
+            if self.are_criterias_met(record, criteria):
+                list_match_records += [record]
+        
+        s.close()
+        return list_match_records
 
 
+###############
     def create_index(self, field_to_index: str) -> None:
         raise NotImplementedError
 
@@ -146,7 +200,7 @@ class DataBase(db_api.DataBase):
     def delete_selve_file(self, table_name):
         s = (os.path.join('db_files', table_name + ".db.bak"))
         os.remove(s)
-        s = (os.path.join('db_files', table_name + ".db.daf"))
+        s = (os.path.join('db_files', table_name + ".db.dat"))
         os.remove(s)
         s = (os.path.join('db_files', table_name + ".db.dir"))
         os.remove(s)
@@ -177,7 +231,7 @@ class DataBase(db_api.DataBase):
     def get_tables_names(self) -> List[Any]:
         return list(self.db_tables.keys())
 
-
+##############
     def query_multiple_tables(
             self,
             tables: List[str],
