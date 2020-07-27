@@ -96,9 +96,6 @@ class DBTable(db_api.DBTable):
         raise NotImplementedError
 
 
-path_database_data = os.path.join('db_files', "database.csv")
-
-
 class DataBase(db_api.DataBase):
     def __init__(self):
         self.db_tables = {}
@@ -107,10 +104,9 @@ class DataBase(db_api.DataBase):
         
 
     def reload_from_disk(self):
-        with open(path_database_data) as csv_file:
+        with open('database.csv', 'r') as csv_file:
             csv_reader = csv.reader(csv_file)
-            next(csv_reader)
-            
+
             for row in csv_reader:
                 table_name = row[0]
                 self.db_tables[table_name] = DBTable(table_name, row[1], row[2])
@@ -127,7 +123,7 @@ class DataBase(db_api.DataBase):
         self.db_tables[table_name] = DBTable(table_name, fields, key_field_name)
         self.num_tables_in_DB += 1
 
-        with open(path_database_data, "a") as csv_file:
+        with open('database.csv', "a", newline='') as csv_file:
             csv_writer = csv.writer(csv_file)
             data_table = [table_name, fields, key_field_name]
             csv_writer.writerow(data_table)
@@ -146,8 +142,35 @@ class DataBase(db_api.DataBase):
         return self.db_tables.get(table_name, None)
 
 
+    def delete_selve_file(self, table_name):
+        s = (os.path.join('db_files', table_name + ".db.bak"))
+        os.remove(s)
+        s = (os.path.join('db_files', table_name + ".db.dat"))
+        os.remove(s)
+        s = (os.path.join('db_files', table_name + ".db.dir"))
+        os.remove(s)
+
+
     def delete_table(self, table_name: str) -> None:
-        self.db_tables.pop(table_name, None)
+        if table_name not in self.db_tables.keys():
+            raise ValueError("The table name doesn't exist in the database")
+
+        self.num_tables_in_DB -= 1
+        self.delete_selve_file(table_name)
+        self.db_tables.pop(table_name)
+        
+        # remove the table from database.csv
+        with open('database.csv','r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            lines = []
+            for row in csv_reader:
+                lines += [row]
+            
+        with open('database.csv','w',newline='') as csv_file:
+            csv_writer = csv.writer(csv_file) 
+            for line in lines:
+                if line[0] != table_name:
+                    csv_writer.writerow(line)
         
 
     def get_tables_names(self) -> List[Any]:
