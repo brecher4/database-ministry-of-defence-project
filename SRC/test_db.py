@@ -61,7 +61,7 @@ def new_db() -> Generator[DataBase, None, None]:
 def backup_db() -> Generator[Path, None, None]:
     yield DB_BACKUP_ROOT
 
-
+##### עובד מוושלם !!!!
 def test_reload_from_backup(backup_db: Path) -> None:
     """This test requires preparing the backup by calling create_db_backup()"""
     delete_files(DB_ROOT)
@@ -73,7 +73,7 @@ def test_reload_from_backup(backup_db: Path) -> None:
     students = db.get_table('Students')
     assert students.count() == 100
 
-
+######## עובד מושלללללם !!!
 def test_create(new_db: DataBase) -> None:
     db = new_db
     assert db.num_tables() == 0
@@ -95,7 +95,7 @@ def test_create(new_db: DataBase) -> None:
     db1.delete_table('Students')
     assert db1.num_tables() == 0
 
-
+############ עובד מוששששלם !!!!
 def test_update(new_db: DataBase) -> None:
     students = create_students_table(new_db)
     add_student(students, 111, Birthday=dt.datetime(1995, 4, 28))
@@ -105,7 +105,7 @@ def test_update(new_db: DataBase) -> None:
     with pytest.raises(ValueError):  # record already exists
         add_student(students, 111)
 
-
+####### עובד מוושלם !!!!
 def test_50_students(new_db: DataBase) -> None:
     students = create_students_table(new_db, num_students=50)
     assert students.count() == 50
@@ -123,7 +123,7 @@ def test_50_students(new_db: DataBase) -> None:
     assert len(results) == 1
     assert results[0]['First'] == 'Jane'
 
-
+####### עובד מוושלם !!!!
 def test_performance(new_db: DataBase) -> None:
     num_records = 200
     assert db_size() == 0
@@ -141,7 +141,7 @@ def test_performance(new_db: DataBase) -> None:
     delete_stop = time.time()
     assert delete_stop - delete_start < 20
 
-
+############ עובד מוששששלם !!!
 def test_bad_key(new_db: DataBase) -> None:
     with pytest.raises(ValueError):
         _ = new_db.create_table('Students', STUDENT_FIELDS, 'BAD_KEY')
