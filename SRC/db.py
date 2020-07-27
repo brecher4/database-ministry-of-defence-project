@@ -48,8 +48,14 @@ class DBTable(db_api.DBTable):
         
 
     def delete_record(self, key: Any) -> None:
-        raise NotImplementedError
+        s = shelve.open(self.path_file)
 
+        if key not in s.keys():
+            raise KeyError("The key isn't exists")
+ 
+        s.pop(key)
+        s.close()
+        
 
     def delete_records(self, criteria: List[SelectionCriteria]) -> None:
         raise NotImplementedError
@@ -63,7 +69,10 @@ class DBTable(db_api.DBTable):
 
 
     def update_record(self, key: Any, values: Dict[str, Any]) -> None:
-        raise NotImplementedError
+        s = shelve.open(self.path_file, writeback=True)
+        self.fields += list(set(values.keys()).difference(set(self.fields)))
+        s[key].update(values)
+        s.close()
 
 
     def query_table(self, criteria: List[SelectionCriteria]) \
