@@ -20,11 +20,11 @@ class DBTable(db_api.DBTable):
         self.name = name
         self.fields = fields
         self.key_field_name = key_field_name
-        self.num_record = 0
         self.path_file = os.path.join('db_files', self.name + '.db')
 
         # create shelve file
         s = shelve.open(self.path_file)
+        self.num_record = len(s.keys())
         s.close()
 
     
@@ -109,7 +109,8 @@ class DataBase(db_api.DataBase):
     def reload_from_disk(self):
         with open(path_database_data) as csv_file:
             csv_reader = csv.reader(csv_file)
-
+            next(csv_reader)
+            
             for row in csv_reader:
                 table_name = row[0]
                 self.db_tables[table_name] = DBTable(table_name, row[1], row[2])
