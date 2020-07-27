@@ -10,9 +10,10 @@ class DBField(db_api.DBField):
 
 
 class SelectionCriteria(db_api.SelectionCriteria):
-    field_name: str
-    operator: str
-    value: Any
+    def __init__(self, field_name, operator, value):
+        self.field_name = field_name
+        self.operator = operator
+        self.value = value
 
 
 class DBTable(db_api.DBTable):  
@@ -145,7 +146,7 @@ class DataBase(db_api.DataBase):
     def delete_selve_file(self, table_name):
         s = (os.path.join('db_files', table_name + ".db.bak"))
         os.remove(s)
-        s = (os.path.join('db_files', table_name + ".db.dat"))
+        s = (os.path.join('db_files', table_name + ".db.daf"))
         os.remove(s)
         s = (os.path.join('db_files', table_name + ".db.dir"))
         os.remove(s)
@@ -154,7 +155,7 @@ class DataBase(db_api.DataBase):
     def delete_table(self, table_name: str) -> None:
         if table_name not in self.db_tables.keys():
             raise ValueError("The table name doesn't exist in the database")
-
+        
         self.num_tables_in_DB -= 1
         self.delete_selve_file(table_name)
         self.db_tables.pop(table_name)
