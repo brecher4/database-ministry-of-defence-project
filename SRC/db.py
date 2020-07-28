@@ -155,7 +155,7 @@ def create_index(self, field_to_index: str) -> None:
         if field_to_index not in self.get_names_fields():
             raise ValueError("Field index doesn't exist in table's fields")
 
-        if field_to_index in self.indexes:
+        if field_to_index in self.indexes or field_to_index == self.key_field_name:
             return
 
         index_file = shelve.open(self.get_path_index_file(field_to_index), writeback=True)
@@ -184,6 +184,10 @@ class DataBase(db_api.DataBase):
         self.db_tables = {}
         self.num_tables_in_DB = 0
         self.reload_from_disk()
+
+
+    def get_db_field_obj(self, data_field):
+        return DBField(data_field[0], eval(data_field[1]))
         
 
     def reload_from_disk(self):
@@ -192,7 +196,10 @@ class DataBase(db_api.DataBase):
 
             for row in csv_reader:
                 table_name = row[0]
-                self.db_tables[table_name] = DBTable(table_name, row[1], row[2])
+                list_fields = list(map(self.get_db_field_obj, eval(row[1])))
+                key_field_name = row[2]
+                self.db_tables[table_name] = DBTable(table_name, list_fields, key_field_name)
+                self.db_tables[table_name].indexes = eval(row[3])
                 self.num_tables_in_DB += 1
 
 
@@ -208,7 +215,7 @@ class DataBase(db_api.DataBase):
 
         with open('database.csv', "a", newline='') as csv_file:
             csv_writer = csv.writer(csv_file)
-            data_table = [table_name, fields, key_field_name]
+            data_table = [table_name, fields, key_field_name, []]
             csv_writer.writerow(data_table)
 
         return self.db_tables[table_name]
