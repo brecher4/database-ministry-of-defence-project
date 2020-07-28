@@ -22,6 +22,7 @@ class DBTable(db_api.DBTable):
         self.fields = fields
         self.key_field_name = key_field_name
         self.path_file = os.path.join('db_files', self.name + '.db')
+        self.indexes = []
 
         # create shelve file
         s = shelve.open(self.path_file)
@@ -31,6 +32,10 @@ class DBTable(db_api.DBTable):
     
     def get_names_fields(self):
         return [field.name for field in self.fields]
+
+
+    def get_format_index_file(self, field_name):
+        return os.path.join('db_files', 'index_' + field_name + '_' + self.name + '.db')
 
 
     def count(self) -> int:
@@ -58,7 +63,7 @@ class DBTable(db_api.DBTable):
 
         if str(key) not in s.keys():
             s.close()
-            raise ValueError("The key isn't exists")
+            raise ValueError("The key doesn't exist")
  
         s.pop(str(key))
         self.num_record -= 1
@@ -117,7 +122,7 @@ class DBTable(db_api.DBTable):
         
         if str(key) not in s.keys():
             s.close()
-            raise ValueError("The key isn't exists")
+            raise ValueError("The key doesn't exist")
         
         self.fields += [ DBField(item, Any) for item in values.keys() if item not in self.get_names_fields()]
         s[str(key)].update(values)
@@ -148,7 +153,8 @@ class DBTable(db_api.DBTable):
 
 ###############
     def create_index(self, field_to_index: str) -> None:
-        raise NotImplementedError
+        if field_to_index not in self.get_names_fields():
+            raise ValueError("Field index doesn't exist in table's fields")
 
 
 class DataBase(db_api.DataBase):
