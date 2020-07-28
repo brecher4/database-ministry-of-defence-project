@@ -34,7 +34,7 @@ class DBTable(db_api.DBTable):
         return [field.name for field in self.fields]
 
 
-    def get_format_index_file(self, field_name):
+    def get_path_index_file(self, field_name):
         return os.path.join('db_files', 'index_' + field_name + '_' + self.name + '.db')
 
 
@@ -151,10 +151,32 @@ class DBTable(db_api.DBTable):
         return list_match_records
 
 
-###############
-    def create_index(self, field_to_index: str) -> None:
+def create_index(self, field_to_index: str) -> None:
         if field_to_index not in self.get_names_fields():
             raise ValueError("Field index doesn't exist in table's fields")
+
+        if field_to_index in self.indexes:
+            return
+
+        index_file = shelve.open(self.get_path_index_file(field_to_index), writeback=True)
+        table_file = shelve.open(self.path_file)
+
+        for record in table_file.values():
+            key_index = record.get(field_to_index, None)
+
+            if key_index is None:
+                continue
+
+            key_index = str(key_index)
+            
+            if key_index in index_file.keys():
+                index_file[key_index] += [record[self.key_field_name]]
+
+            else:
+                index_file[key_index] = [record[self.key_field_name]]
+
+        table_file.close()
+        index_file.close()
 
 
 class DataBase(db_api.DataBase):
