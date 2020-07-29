@@ -1,4 +1,5 @@
 import os, shelve, csv
+import datetime as dt
 from typing import Any, Dict, List, Type
 import db_api
 
@@ -43,7 +44,7 @@ class DBTable(db_api.DBTable):
 
 
     def update_records_in_every_indexes(self, old_record, new_record):
-        if old_record != [] or old_record[self.key_field_name] != new_record[self.key_field_name]:
+        if old_record != {} and old_record[self.key_field_name] != new_record[self.key_field_name]:
             raise ValueError("The key field couldn't be updated")
 
         for field_name in new_record.keys():
@@ -219,7 +220,8 @@ class DBTable(db_api.DBTable):
         
         self.fields += [ DBField(item, Any) for item in values.keys() if item not in self.get_names_fields()]
         old_record = s[str(key)]
-        new_record = s[str(key)].update(values)
+        s[str(key)].update(values)
+        new_record = s[str(key)]
         self.update_records_in_every_indexes(old_record, new_record)
         s.close()
 
@@ -338,7 +340,17 @@ class DataBase(db_api.DataBase):
 
 
     def get_data_field(self, field: DBField):
-        return [field.name, str(field.type)]
+        
+        if field.type == dt.datetime:
+            type_as_str = 'dt.datetime'
+
+        else:
+            if isinstance(field.type, type):
+                type_as_str = field.type.__name__
+            else:
+                type_as_str = field.type._name
+        
+        return [field.name, type_as_str]
 
 
     def create_table(self, table_name: str, fields: List[DBField], key_field_name: str) -> DBTable:
