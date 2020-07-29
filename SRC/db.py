@@ -272,7 +272,7 @@ class DBTable(db_api.DBTable):
         return list_match_records
 
 
-def create_index(self, field_to_index: str) -> None:
+    def create_index(self, field_to_index: str) -> None:
         if field_to_index not in self.get_names_fields():
             raise ValueError("Field index doesn't exist in table's fields")
 
@@ -305,7 +305,7 @@ def create_index(self, field_to_index: str) -> None:
             lines = []
             for row in csv_reader:
                 if self.name == row[0]:
-                    row[3] += [field_to_index]
+                    row[3] = str(eval(row[3]) + [field_to_index])
 
                 lines += [row]
             
