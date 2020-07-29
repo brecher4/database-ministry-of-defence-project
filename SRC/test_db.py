@@ -119,6 +119,7 @@ def test_50_students(new_db: DataBase) -> None:
     ])
     assert students.count() == 28
     students.update_record(1_000_009, dict(First='Jane', Last='Doe'))
+    students.create_index('First')
     results = students.query_table([SelectionCriteria('First', '=', 'Jane')])
     assert len(results) == 1
     assert results[0]['First'] == 'Jane'
